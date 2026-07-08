@@ -69,3 +69,10 @@ class DacteConfig:
     watermark_cancelled: bool = False
     display_ibs_cbs: bool = False
     forced_orientation: ForcedOrientation = ForcedOrientation.AUTO
+
+    def __post_init__(self):
+        # Aceita também o inteiro (0/1/2) — útil em ambientes como
+        # PL/Python; enum puro não compara igual ao int, e passar 1 sem
+        # esta coerção cairia silenciosamente no comportamento AUTO.
+        if not isinstance(self.forced_orientation, ForcedOrientation):
+            self.forced_orientation = ForcedOrientation(self.forced_orientation)

@@ -103,3 +103,10 @@ class DanfeConfig:
         default_factory=ProductDescriptionConfig
     )
     footer_stamp: FooterStamp = field(default_factory=FooterStamp)
+
+    def __post_init__(self):
+        # Aceita também o inteiro (0/1/2) — útil em ambientes como
+        # PL/Python; enum puro não compara igual ao int, e passar 1 sem
+        # esta coerção cairia silenciosamente no comportamento AUTO.
+        if not isinstance(self.forced_orientation, ForcedOrientation):
+            self.forced_orientation = ForcedOrientation(self.forced_orientation)
