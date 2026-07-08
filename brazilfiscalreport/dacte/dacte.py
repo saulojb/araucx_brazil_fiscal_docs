@@ -518,29 +518,31 @@ class Dacte(xFPDF):
         self.rect(x=y_margin_ret, y=section_start_y, w=mid_col_w, h=11, style="")
 
         # Colunas MODELO/SÉRIE/NÚMERO/DATA/FL ancoradas em y_margin_ret (início
-        # da caixa de 84mm à direita), que já escala com self.epw — evita que
-        # a orientação paisagem (epw maior) jogue as linhas para fora da caixa.
-        col_width = 17.8
-        x_line_1 = y_margin_ret + 20.8
+        # da caixa à direita). O fator col_scale (1 no retrato) redistribui
+        # proporcionalmente o alargamento da coluna central em paisagem —
+        # sem ele, os 5mm extras iriam todos para a última coluna (FL).
+        col_scale = mid_col_w / 84
+        col_width = 17.8 * col_scale
+        x_line_1 = y_margin_ret + 20.8 * col_scale
         x_line_2 = x_line_1 + col_width
         x_line_3 = x_line_2 + col_width
         x_line_4 = x_line_3 + col_width
         x_line_5 = x_line_4
         self.line(
-            x1=x_line_1 - 5,
-            x2=x_line_1 - 5,
+            x1=x_line_1 - 5 * col_scale,
+            x2=x_line_1 - 5 * col_scale,
             y1=section_start_y,
             y2=section_start_y + 11,
         )
         self.line(
-            x1=x_line_2 - 5,
-            x2=x_line_2 - 5,
+            x1=x_line_2 - 5 * col_scale,
+            x2=x_line_2 - 5 * col_scale,
             y1=section_start_y,
             y2=section_start_y + 11,
         )
         self.line(
-            x1=x_line_3 - 8,
-            x2=x_line_3 - 8,
+            x1=x_line_3 - 8 * col_scale,
+            x2=x_line_3 - 8 * col_scale,
             y1=section_start_y,
             y2=section_start_y + 11,
         )
@@ -549,10 +551,14 @@ class Dacte(xFPDF):
 
         self.set_font(self.default_font, "", 7)
         self.set_xy(y_margin_ret, section_start_y + 2)
-        self.multi_cell(w=x_line_1 - 5 - y_margin_ret, h=1, text="MODELO", align="C")
+        self.multi_cell(
+            w=x_line_1 - 5 * col_scale - y_margin_ret, h=1, text="MODELO", align="C"
+        )
         self.set_xy(y_margin_ret, section_start_y + 2)
         self.set_font(self.default_font, "B", 7)
-        self.multi_cell(w=x_line_1 - 5 - y_margin_ret, h=11, text=self.mod, align="C")
+        self.multi_cell(
+            w=x_line_1 - 5 * col_scale - y_margin_ret, h=11, text=self.mod, align="C"
+        )
 
         self.set_font(self.default_font, "", 7)
         self.set_xy(x_line_2 - 28, section_start_y + 2)
@@ -1313,7 +1319,10 @@ class Dacte(xFPDF):
         self.multi_cell(w=10, h=21, text="IE", align="L")
         self.set_font(self.default_font, "B", 7)
         self.set_xy(x0 + col_w - 19, y0 + 2)
-        self.multi_cell(w=17, h=21, text=ie, align="R")
+        # cell (sem quebra): IEs longas (SP tem 12 dígitos) transbordam
+        # para a esquerda, onde há espaço, em vez de quebrarem por cima da
+        # linha do FONE.
+        self.cell(w=17, h=21, text=ie, align="R", border=0)
 
         self.set_font(self.default_font, "", 7)
         self.set_xy(x0 + col_w - 29, y0 + 2)
@@ -1374,7 +1383,9 @@ class Dacte(xFPDF):
         self.multi_cell(w=10, h=25, text="IE", align="L")
         self.set_font(self.default_font, "B", 7)
         self.set_xy(x0 + col_w - 19, y0 + 0.5)
-        self.multi_cell(w=17, h=25, text=ie, align="R")
+        # cell (sem quebra) — mesmo motivo do bloco de 18mm acima: IEs de
+        # 12 dígitos quebravam por cima da linha do FONE.
+        self.cell(w=17, h=25, text=ie, align="R", border=0)
 
         self.set_font(self.default_font, "", 7)
         self.set_xy(x0 + col_w - 29, y0 + 0.5)
