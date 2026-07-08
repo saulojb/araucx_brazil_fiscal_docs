@@ -33,9 +33,9 @@ jobs:
           python -m pip install --upgrade pip setuptools fpdf2 phonenumbers python-barcode pytest qrcode  pytest-cov click PyYAML
       - name: Test
         run: |
-          pytest --cov=./brazilfiscalreport --cov-report=xml --cov-branch --doctest-glob="docs/*.md"
+          pytest --cov=./abrazilfiscalreport --cov-report=xml --cov-branch --doctest-glob="docs/*.md"
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: Engenere/BrazilFiscalReport
+          slug: saulojb/araucx_brazil_fiscal_docs

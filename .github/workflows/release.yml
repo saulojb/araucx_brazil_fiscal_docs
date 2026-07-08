@@ -1,0 +1,49 @@
+name: release
+
+# Fluxo de release do fork: bump em abrazilfiscalreport/__init__.py,
+# depois `git tag vX.Y.Z-araucx && git push origin vX.Y.Z-araucx`.
+# O workflow builda, faz smoke test do wheel e publica a Release do
+# GitHub com o .whl e o .tar.gz anexados — instalável via
+# pip install <URL do .whl na release>.
+on:
+  push:
+    tags:
+      - "v*-araucx*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build (wheel + sdist)
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - name: Smoke test do wheel
+        run: |
+          python -m pip install "$(ls dist/*.whl)[cli,dacte,damdfe]"
+          python -c "import abrazilfiscalreport; print('abrazilfiscalreport', abrazilfiscalreport.__version__)"
+          abfrep --version
+
+      - name: Testes
+        run: |
+          sudo apt-get update --allow-releaseinfo-change && sudo apt-get install -y qpdf
+          python -m pip install pytest
+          python -m pytest tests/ -q
+
+      - name: Publica a Release com os artefatos
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/* \
+            --title "abrazilfiscalreport ${GITHUB_REF_NAME}" \
+            --generate-notes
