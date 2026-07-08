@@ -1,6 +1,6 @@
 import pytest
 
-from brazilfiscalreport.damdfe import (
+from abrazilfiscalreport.damdfe import (
     Damdfe,
     DamdfeConfig,
     Margins,

@@ -1,7 +1,7 @@
 import pytest
 from click.testing import CliRunner
 
-from brazilfiscalreport.cli import cli
+from abrazilfiscalreport.cli import cli
 
 
 @pytest.fixture

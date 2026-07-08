@@ -3,13 +3,13 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["brazilfiscalreport*"]
+include = ["abrazilfiscalreport*"]
 
 [tool.setuptools.package-data]
-"brazilfiscalreport.danfse" = ["*.png", "*.csv"]
+"abrazilfiscalreport.danfse" = ["*.png", "*.csv"]
 
 [project]
-name = "BrazilFiscalReport"
+name = "abrazilfiscalreport"
 dynamic = ["version"]
 description = "Python library for generating Brazilian auxiliary fiscal documents in PDF from XML documents."
 authors = [{ name = "Engenere" }]
@@ -68,13 +68,13 @@ file = "README.md"
 content-type = "text/markdown"
 
 [project.urls]
-homepage = "https://github.com/Engenere/BrazilFiscalReport"
+homepage = "https://github.com/saulojb/araucx_brazil_fiscal_docs"
 
 [project.scripts]
-bfrep = "brazilfiscalreport.__main__:cli"
+abfrep = "abrazilfiscalreport.__main__:cli"
 
 [tool.setuptools.dynamic]
-version = {attr = "brazilfiscalreport.__version__"}
+version = {attr = "abrazilfiscalreport.__version__"}
 
 [tool.ruff]
 target-version = "py38"
@@ -97,7 +97,7 @@ select = [
     "I",
 ]
 
-isort = { known-first-party = ['brazilfiscalreport', 'test'] }
+isort = { known-first-party = ['abrazilfiscalreport', 'test'] }
 
 [tool.doc8]
 max-line-length = 88

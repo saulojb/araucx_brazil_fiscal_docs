@@ -1,6 +1,6 @@
 import unittest
 
-from brazilfiscalreport import utils
+from abrazilfiscalreport import utils
 
 
 class TestUtils(unittest.TestCase):

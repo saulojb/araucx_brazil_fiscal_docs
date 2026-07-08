@@ -3,7 +3,7 @@ from pathlib import Path
 import click
 import yaml
 
-from brazilfiscalreport import __version__
+from abrazilfiscalreport import __version__
 
 
 def load_config():
@@ -31,7 +31,7 @@ def get_default_issuer():
 
 @click.group()
 @click.version_option(
-    __version__, "-v", "--version", message="bfrep version %(version)s"
+    __version__, "-v", "--version", message="abfrep version %(version)s"
 )
 def cli():
     pass
@@ -41,10 +41,10 @@ def cli():
 @click.argument("xml", type=click.Path(exists=True))
 def generate_dacce(xml):
     try:
-        from brazilfiscalreport import dacce
+        from abrazilfiscalreport import dacce
     except ImportError:
         click.echo(
-            "Error: The brazilfiscalreport package"
+            "Error: The abrazilfiscalreport package"
             "or its dacce module is not installed."
         )
         return
@@ -68,10 +68,10 @@ def generate_dacce(xml):
 @click.argument("xml", type=click.Path(exists=True))
 def generate_danfe(xml):
     try:
-        from brazilfiscalreport import danfe
+        from abrazilfiscalreport import danfe
     except ImportError:
         click.echo(
-            "Error: The brazilfiscalreport package"
+            "Error: The abrazilfiscalreport package"
             "or its danfe module is not installed."
         )
         return
@@ -109,10 +109,10 @@ def generate_danfe(xml):
 @click.argument("xml", type=click.Path(exists=True))
 def generate_dacte(xml):
     try:
-        from brazilfiscalreport import dacte
+        from abrazilfiscalreport import dacte
     except ImportError:
         click.echo(
-            "Error: The brazilfiscalreport package"
+            "Error: The abrazilfiscalreport package"
             "or its dacte module is not installed."
         )
         return
@@ -150,10 +150,10 @@ def generate_dacte(xml):
 @click.argument("xml", type=click.Path(exists=True))
 def generate_damdfe(xml):
     try:
-        from brazilfiscalreport import damdfe
+        from abrazilfiscalreport import damdfe
     except ImportError:
         click.echo(
-            "Error: The brazilfiscalreport package "
+            "Error: The abrazilfiscalreport package "
             "or its damdfe module is not installed."
         )
         return
@@ -191,10 +191,10 @@ def generate_damdfe(xml):
 @click.argument("xml", type=click.Path(exists=True))
 def generate_danfse(xml):
     try:
-        from brazilfiscalreport import danfse
+        from abrazilfiscalreport import danfse
     except ImportError:
         click.echo(
-            "Error: The brazilfiscalreport package"
+            "Error: The abrazilfiscalreport package"
             "or its danfse module is not installed."
         )
         return

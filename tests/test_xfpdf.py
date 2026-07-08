@@ -1,6 +1,6 @@
 import pytest
 
-from brazilfiscalreport.xfpdf import xFPDF
+from abrazilfiscalreport.xfpdf import xFPDF
 
 # Caracteres tipográficos comuns em texto colado do Word/email que existem em
 # cp1252 (WinAnsiEncoding) mas NÃO em latin-1, e portanto quebravam o pipeline

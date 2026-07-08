@@ -2,7 +2,7 @@ import warnings
 
 import pytest
 
-from brazilfiscalreport.danfe import (
+from abrazilfiscalreport.danfe import (
     Danfe,
     DanfeConfig,
     DecimalConfig,

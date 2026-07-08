@@ -1,6 +1,6 @@
 import pytest
 
-from brazilfiscalreport.danfse import (
+from abrazilfiscalreport.danfse import (
     Danfse,
     DanfseConfig,
     Margins,

@@ -1,6 +1,6 @@
 import pytest
 
-from brazilfiscalreport.dacte import (
+from abrazilfiscalreport.dacte import (
     Dacte,
     DacteConfig,
     FontType,

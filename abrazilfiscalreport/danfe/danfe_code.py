@@ -4,7 +4,7 @@ from io import BytesIO
 from barcode.codex import Code128
 from barcode.writer import SVGWriter
 
-from brazilfiscalreport.pdf_element import Element
+from abrazilfiscalreport.pdf_element import Element
 
 
 class DanfeCode(Element):

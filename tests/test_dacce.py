@@ -1,4 +1,4 @@
-from brazilfiscalreport.dacce import DaCCe
+from abrazilfiscalreport.dacce import DaCCe
 from tests.conftest import assert_pdf_equal, get_pdf_output_path
 
 
