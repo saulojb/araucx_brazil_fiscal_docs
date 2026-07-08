@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 from numbers import Number
+from typing import Optional
 
 
 class FontType(Enum):
@@ -9,6 +10,15 @@ class FontType(Enum):
     # Equivalente métrico da Arial exigida pela NT 008/2026 (fonte core do
     # PDF, dispensa embutir TTF).
     HELVETICA = "Helvetica"
+
+
+@dataclass
+class CustomFont:
+    """Fonte TTF personalizada. Informe o nome e os caminhos dos arquivos."""
+
+    name: str
+    regular: str  # caminho para o .ttf regular
+    bold: str = ""  # caminho para o .ttf bold; usa regular se vazio
 
 
 @dataclass
@@ -35,6 +45,7 @@ class DanfseConfig:
     watermark_cancelled: bool = False
     # Marca d'água "SUBSTITUÍDA" (NT 008/2026, item 2.5.2).
     watermark_replaced: bool = False
+    custom_font: Optional[CustomFont] = None
     # Bloco de canhoto na base do documento (NT 008/2026, item 2.1.13 e
     # Nota 11 — opcional).
     display_canhoto: bool = False

@@ -2,12 +2,22 @@ from dataclasses import dataclass, field
 from enum import Enum
 from io import BytesIO
 from numbers import Number
-from typing import Union
+from typing import Optional, Union
 
 
 class FontType(Enum):
     COURIER = "Courier"
     TIMES = "Times"
+    HELVETICA = "Helvetica"
+
+
+@dataclass
+class CustomFont:
+    """Fonte TTF personalizada. Informe o nome e os caminhos dos arquivos."""
+
+    name: str
+    regular: str  # caminho para o .ttf regular
+    bold: str = ""  # caminho para o .ttf bold; usa regular se vazio
 
 
 class ModalType(Enum):
@@ -41,5 +51,6 @@ class DamdfeConfig:
     logo: Union[str, BytesIO, bytes] = None
     margins: Margins = field(default_factory=Margins)
     decimal_config: DecimalConfig = field(default_factory=DecimalConfig)
-    font_type: FontType = FontType.TIMES
+    font_type: FontType = FontType.HELVETICA
+    custom_font: Optional[CustomFont] = None
     display_origem_destino_prestacao: bool = False

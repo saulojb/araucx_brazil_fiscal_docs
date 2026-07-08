@@ -19,6 +19,16 @@ class InvoiceDisplay(Enum):
 class FontType(Enum):
     COURIER = "Courier"
     TIMES = "Times"
+    HELVETICA = "Helvetica"
+
+
+@dataclass
+class CustomFont:
+    """Fonte TTF personalizada. Informe o nome e os caminhos dos arquivos."""
+
+    name: str
+    regular: str  # caminho para o .ttf regular
+    bold: str = ""  # caminho para o .ttf bold; usa regular se vazio
 
 
 class FontSize(Enum):
@@ -47,6 +57,15 @@ class ReceiptPosition(Enum):
     LEFT = "left"
 
 
+class ForcedOrientation(Enum):
+    # 0: não força — usa a orientação indicada em ide/tpImp do XML.
+    AUTO = 0
+    # 1: força retrato, ignorando ide/tpImp.
+    PORTRAIT = 1
+    # 2: força paisagem, ignorando ide/tpImp.
+    LANDSCAPE = 2
+
+
 @dataclass
 class ProductDescriptionConfig:
     display_branch: bool = False
@@ -73,11 +92,13 @@ class DanfeConfig:
     decimal_config: DecimalConfig = field(default_factory=DecimalConfig)
     tax_configuration: TaxConfiguration = TaxConfiguration.STANDARD_ICMS_IPI
     invoice_display: InvoiceDisplay = InvoiceDisplay.FULL_DETAILS
-    font_type: FontType = FontType.TIMES
+    font_type: FontType = FontType.HELVETICA
+    custom_font: Optional[CustomFont] = None
     font_size: FontSize = FontSize.SMALL
     display_pis_cofins: bool = False
     watermark_cancelled: bool = False
     infcpl_semicolon_newline: bool = False
+    forced_orientation: ForcedOrientation = ForcedOrientation.AUTO
     product_description_config: ProductDescriptionConfig = field(
         default_factory=ProductDescriptionConfig
     )

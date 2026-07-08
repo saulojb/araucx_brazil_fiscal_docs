@@ -1,4 +1,5 @@
 from .config import (
+    CustomFont,
     DamdfeConfig,
     DecimalConfig,
     EmissionType,
@@ -11,6 +12,7 @@ from .damdfe import Damdfe
 __all__ = [
     "Damdfe",
     "DamdfeConfig",
+    "CustomFont",
     "DecimalConfig",
     "FontType",
     "Margins",

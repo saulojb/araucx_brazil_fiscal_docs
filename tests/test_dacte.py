@@ -3,6 +3,7 @@ import pytest
 from brazilfiscalreport.dacte import (
     Dacte,
     DacteConfig,
+    FontType,
     Margins,
     ReceiptPosition,
 )
@@ -145,4 +146,11 @@ def test_dacte_reforma_tributaria(tmp_path, load_dacte):
     dacte_config = DacteConfig(display_ibs_cbs=True)
     dacte = load_dacte("dacte_reforma_tributaria.xml", config=dacte_config)
     pdf_path = get_pdf_output_path("dacte", "dacte_reforma_tributaria")
+    assert_pdf_equal(dacte, pdf_path, tmp_path)
+
+
+def test_dacte_from_root_xml(tmp_path, load_dacte):
+    """Test DACTE using the XML copied from the project root."""
+    dacte = load_dacte("cte_from_root_test.xml")
+    pdf_path = get_pdf_output_path("dacte", "dacte_from_root_xml")
     assert_pdf_equal(dacte, pdf_path, tmp_path)

@@ -48,7 +48,10 @@ class Damdfe(xFPDF):
         self.set_auto_page_break(auto=False, margin=self.config.margins.bottom)
         self.set_title("DAMDFE")
         self.logo_image = self.config.logo
-        self.default_font = self.config.font_type.value
+        if self.config.custom_font:
+            self._register_custom_font(self.config.custom_font)
+        else:
+            self.default_font = self.config.font_type.value
         self.price_precision = self.config.decimal_config.price_precision
         self.quantity_precision = self.config.decimal_config.quantity_precision
 

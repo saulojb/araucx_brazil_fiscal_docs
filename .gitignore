@@ -122,3 +122,6 @@ xml_cce_1.pdf
 # Arquivos de trabalho da auditoria DANFSe (NT 008) — manter só local
 AUDIT_NT008.md
 nt-008-se-cgnfse-danfse-20260505.pdf
+
+# Pasta de previews de layout para revisão local
+preview/

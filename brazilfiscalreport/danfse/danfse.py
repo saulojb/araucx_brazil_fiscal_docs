@@ -251,7 +251,10 @@ class Danfse(xFPDF):
         )
         self.set_auto_page_break(auto=False, margin=config.margins.bottom)
         self.set_title("DANFSE")
-        self.default_font = config.font_type.value
+        if config.custom_font:
+            self._register_custom_font(config.custom_font)
+        else:
+            self.default_font = config.font_type.value
         self.price_precision = config.decimal_config.price_precision
         self.quantity_precision = config.decimal_config.quantity_precision
         self.orientation = "P"

@@ -20,7 +20,13 @@ from ..utils import (
     merge_if_different,
 )
 from ..xfpdf import xFPDF
-from .config import DanfeConfig, FontSize, InvoiceDisplay, ReceiptPosition
+from .config import (
+    DanfeConfig,
+    FontSize,
+    ForcedOrientation,
+    InvoiceDisplay,
+    ReceiptPosition,
+)
 from .danfe_basic_field import DanfeBasicField
 from .danfe_block import DanfeBlock
 from .danfe_code import DanfeCode
@@ -67,7 +73,10 @@ class Danfe(xFPDF):
         self.set_title("DANFE")
         self.logo_image = config.logo
         self.receipt_pos = config.receipt_pos
-        self.default_font = config.font_type.value
+        if config.custom_font:
+            self._register_custom_font(config.custom_font)
+        else:
+            self.default_font = config.font_type.value
         self.default_font_factor = (
             config.font_size.value
             if self.default_font == "Times"
@@ -80,6 +89,7 @@ class Danfe(xFPDF):
         self.infcpl_semicolon_newline = config.infcpl_semicolon_newline
         self.product_description_config = config.product_description_config
         self.watermark_cancelled = config.watermark_cancelled
+        self.forced_orientation = config.forced_orientation
 
         root = ET.fromstring(xml)
         self.inf_nfe = root.find(f"{URL}infNFe")
@@ -101,11 +111,15 @@ class Danfe(xFPDF):
         self.total_receipt_height = 19  # TODO need compute
 
         # extract orientation
-        tpImp = extract_text(self.ide, "tpImp")
-        if tpImp == "1":
+        if self.forced_orientation == ForcedOrientation.PORTRAIT:
             self.orientation = "P"
-        else:
+        elif self.forced_orientation == ForcedOrientation.LANDSCAPE:
             self.orientation = "L"
+        else:
+            tpImp = extract_text(self.ide, "tpImp")
+            self.orientation = "P" if tpImp == "1" else "L"
+
+        if self.orientation == "L":
             # force receipt position
             # landscape support only left receipt
             self.receipt_pos = ReceiptPosition.LEFT
@@ -511,10 +525,14 @@ class Danfe(xFPDF):
         return addit_data, addit_data_next_pages
 
     def _product_col_widths(self, cst_width: float) -> Tuple[Optional[float], ...]:
+        # NCM/SH (8 dígitos) e UN. (até 3 letras): a largura precisa
+        # acomodar o texto na fonte mais larga suportada (Helvetica/Courier)
+        # mais o c_margin (~1mm) de cada lado da célula da tabela, senão o
+        # último caractere quebra para a linha seguinte.
         if self.default_font_factor is FontSize.SMALL.value:
-            return (15, None, 11, cst_width, 7, 6, 12, 13, 13, 13, 10, 10, 9, 8)
+            return (15, None, 13, cst_width, 7, 7, 12, 13, 13, 13, 10, 10, 9, 8)
         elif self.default_font_factor is FontSize.BIG.value:
-            return (15, None, 14, 8, 8, 8, 12, 13, 15, 14, 13, 10, 9, 9)
+            return (15, None, 17, 8, 8, 9, 12, 13, 15, 14, 13, 10, 9, 9)
 
         raise ValueError(f"Unsupported FontSize: {self.default_font_factor}")
 

@@ -2,12 +2,22 @@ from dataclasses import dataclass, field
 from enum import Enum
 from io import BytesIO
 from numbers import Number
-from typing import Union
+from typing import Optional, Union
 
 
 class FontType(Enum):
     COURIER = "Courier"
     TIMES = "Times"
+    HELVETICA = "Helvetica"
+
+
+@dataclass
+class CustomFont:
+    """Fonte TTF personalizada. Informe o nome e os caminhos dos arquivos."""
+
+    name: str
+    regular: str  # caminho para o .ttf regular
+    bold: str = ""  # caminho para o .ttf bold; usa regular se vazio
 
 
 @dataclass
@@ -39,12 +49,23 @@ class ReceiptPosition(Enum):
     LEFT = "left"
 
 
+class ForcedOrientation(Enum):
+    # 0: não força — usa a orientação indicada em ide/tpImp do XML.
+    AUTO = 0
+    # 1: força retrato, ignorando ide/tpImp.
+    PORTRAIT = 1
+    # 2: força paisagem, ignorando ide/tpImp.
+    LANDSCAPE = 2
+
+
 @dataclass
 class DacteConfig:
     logo: Union[str, BytesIO, bytes] = None
     margins: Margins = field(default_factory=Margins)
     receipt_pos: ReceiptPosition = ReceiptPosition.TOP
     decimal_config: DecimalConfig = field(default_factory=DecimalConfig)
-    font_type: FontType = FontType.TIMES
+    font_type: FontType = FontType.HELVETICA
+    custom_font: Optional[CustomFont] = None
     watermark_cancelled: bool = False
     display_ibs_cbs: bool = False
+    forced_orientation: ForcedOrientation = ForcedOrientation.AUTO

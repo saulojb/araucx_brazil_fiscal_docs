@@ -10,37 +10,33 @@ class DanfeEmitInfo(Element):
 
     def render(self):
         super().render()
-        h_field_name = 10
-        h_logo = 20
-        w_logo = 30
-        y_address = self.y + h_field_name
+        logo_h = 8
 
         if self.logo_image:
             self.pdf.image(
                 name=self.logo_image,
                 x=self.x + 2,
-                y=y_address,
-                w=w_logo,
-                h=h_logo,
+                y=self.y + 1,
+                w=self.w - 4,
+                h=logo_h,
                 keep_aspect_ratio=True,
             )
-            x_address = self.x + w_logo + 2
-            w_address = self.w - w_logo - 3
+            y_emit = self.y + logo_h + 2
         else:
-            w_address = self.w
-            x_address = self.x + 2
+            y_emit = self.y + 1
+
         self.pdf.set_font(self.pdf.default_font, "B", 12)
-        self.pdf.set_xy(x=self.x, y=self.y + 1)
+        self.pdf.set_xy(x=self.x, y=y_emit)
         self.pdf.multi_cell(w=self.w, h=None, text=self.emit, border=0, align="C")
         self.pdf.set_font(self.pdf.default_font, "", 8)
-        self.pdf.set_xy(x=self.x + w_logo + 1, y=self.y + h_field_name + 2)
+        y_address = self.pdf.get_y() + 0.5
         self.pdf.text_box(
             text=self.address,
             text_align="C",
             h_line=3,
-            x=x_address,
+            x=self.x + 2,
             y=y_address,
-            w=w_address,
-            h=self.h - h_field_name,
+            w=self.w - 4,
+            h=self.h - (y_address - self.y),
             border=False,
         )
