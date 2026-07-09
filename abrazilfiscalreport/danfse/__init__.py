@@ -3,6 +3,7 @@ from .config import (
     DanfseConfig,
     DecimalConfig,
     FontType,
+    FooterStamp,
     Margins,
 )
 from .danfse import Danfse
@@ -13,5 +14,6 @@ __all__ = [
     "CustomFont",
     "DecimalConfig",
     "FontType",
+    "FooterStamp",
     "Margins",
 ]

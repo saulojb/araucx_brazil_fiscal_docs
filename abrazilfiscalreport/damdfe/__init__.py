@@ -4,6 +4,7 @@ from .config import (
     DecimalConfig,
     EmissionType,
     FontType,
+    FooterStamp,
     Margins,
     ModalType,
 )
@@ -15,6 +16,7 @@ __all__ = [
     "CustomFont",
     "DecimalConfig",
     "FontType",
+    "FooterStamp",
     "Margins",
     "ModalType",
     "EmissionType",

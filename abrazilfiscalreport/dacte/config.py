@@ -59,6 +59,15 @@ class ForcedOrientation(Enum):
 
 
 @dataclass
+class FooterStamp:
+    logo: Union[str, BytesIO, bytes] = None
+    text: str = ""
+    height: Number = 5
+    logo_max_width: Number = 20
+    spacing: Number = 1
+
+
+@dataclass
 class DacteConfig:
     logo: Union[str, BytesIO, bytes] = None
     margins: Margins = field(default_factory=Margins)
@@ -69,6 +78,7 @@ class DacteConfig:
     watermark_cancelled: bool = False
     display_ibs_cbs: bool = False
     forced_orientation: ForcedOrientation = ForcedOrientation.AUTO
+    footer_stamp: FooterStamp = field(default_factory=FooterStamp)
 
     def __post_init__(self):
         # Aceita também o inteiro (0/1/2) — útil em ambientes como

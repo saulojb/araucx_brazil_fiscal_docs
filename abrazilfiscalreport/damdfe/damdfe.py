@@ -45,7 +45,14 @@ class Damdfe(xFPDF):
             top=self.config.margins.top,
             right=self.config.margins.right,
         )
-        self.set_auto_page_break(auto=False, margin=self.config.margins.bottom)
+        self.footer_stamp = self.config.footer_stamp
+        self._has_footer_stamp = bool(self.footer_stamp.logo or self.footer_stamp.text)
+        # Reserva espaço para o footer stamp dentro da margem inferior, para
+        # a área de conteúdo (eph) encolher sozinha e nunca sobrepor o carimbo.
+        bottom_margin = self.config.margins.bottom
+        if self._has_footer_stamp:
+            bottom_margin += self.footer_stamp.height + self.footer_stamp.spacing
+        self.set_auto_page_break(auto=False, margin=bottom_margin)
         self.set_title("DAMDFE")
         self.logo_image = self.config.logo
         if self.config.custom_font:
@@ -84,6 +91,7 @@ class Damdfe(xFPDF):
         self._draw_body_info()
         self._draw_voucher_information()
         self._draw_insurance_information()
+        self._draw_footer_stamp()
 
     def _build_chCTe_str(self):
         self.chCTe_str = []
@@ -311,10 +319,39 @@ class Damdfe(xFPDF):
         if current_y + required_height <= available_height:
             return current_y
 
+        self._draw_footer_stamp()
         self.add_page(orientation="P")
         self._draw_void_watermark()
         self._draw_contingency_watermark()
         return self.get_y()
+
+    def _draw_footer_stamp(self):
+        if not self._has_footer_stamp:
+            return
+
+        stamp = self.footer_stamp
+        y_top = self.h - self.b_margin + stamp.spacing
+        logo_box_w = stamp.logo_max_width if stamp.logo else 0
+        x_logo = self.w - self.r_margin - logo_box_w
+
+        if stamp.text:
+            self.set_font(self.default_font, style="B", size=7)
+            text_w = self.get_string_width(stamp.text)
+            text_gap = 2 if stamp.logo else 0
+            cell_w = text_w + 2 * self.c_margin
+            cell_x = x_logo - text_gap - text_w - self.c_margin
+            self.set_xy(cell_x, y_top)
+            self.cell(cell_w, stamp.height, stamp.text, align="R")
+
+        if stamp.logo:
+            self.image(
+                stamp.logo,
+                x=x_logo,
+                y=y_top,
+                w=logo_box_w,
+                h=stamp.height,
+                keep_aspect_ratio=True,
+            )
 
     def _draw_dynamic_text_block(
         self,

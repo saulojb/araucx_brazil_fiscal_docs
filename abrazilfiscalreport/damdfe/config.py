@@ -47,6 +47,15 @@ class DecimalConfig:
 
 
 @dataclass
+class FooterStamp:
+    logo: Union[str, BytesIO, bytes] = None
+    text: str = ""
+    height: Number = 5
+    logo_max_width: Number = 20
+    spacing: Number = 1
+
+
+@dataclass
 class DamdfeConfig:
     logo: Union[str, BytesIO, bytes] = None
     margins: Margins = field(default_factory=Margins)
@@ -54,3 +63,4 @@ class DamdfeConfig:
     font_type: FontType = FontType.HELVETICA
     custom_font: Optional[CustomFont] = None
     display_origem_destino_prestacao: bool = False
+    footer_stamp: FooterStamp = field(default_factory=FooterStamp)
