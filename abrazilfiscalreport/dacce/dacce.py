@@ -80,7 +80,14 @@ class DaCCe(xFPDF):
     de infCorrecao por grupo/campo alterado).
     """
 
-    def __init__(self, xml=None, emitente=None, image=None, config: DacceConfig = None):
+    def __init__(
+        self,
+        xml=None,
+        emitente=None,
+        image=None,
+        config: DacceConfig = None,
+        destinatario_cnpj=None,
+    ):
         super().__init__("P", "mm", "A4")
         config = config if config is not None else DacceConfig()
         if config.custom_font:
@@ -118,11 +125,15 @@ class DaCCe(xFPDF):
         emitente_nome = ""
         if emitente:
             emitente_nome = emitente["nome"]
-            text = (
-                f"{emitente['end']}\n"
-                f"{emitente['bairro']}\n"
-                f"{emitente['cidade']} - {emitente['uf']} {emitente['fone']}"
-            )
+            linhas = []
+            # "cnpj" é uma chave opcional (retrocompatível: dicts antigos
+            # sem essa chave continuam sem essa linha, saída idêntica).
+            if emitente.get("cnpj"):
+                linhas.append(f"CNPJ: {format_cpf_cnpj(emitente['cnpj'])}")
+            linhas.append(emitente["end"])
+            linhas.append(emitente["bairro"])
+            linhas.append(f"{emitente['cidade']} - {emitente['uf']} {emitente['fone']}")
+            text = "\n".join(linhas)
 
         if image:
             col_ = 23
@@ -198,13 +209,12 @@ class DaCCe(xFPDF):
 
         self.set_font(self.default_font, "B", 9)
 
-        # CT-e: o protocolo de registro do evento não traz CNPJ do
-        # destinatário (campo existe só no retEvento da NF-e) — a linha
-        # fica em branco nesse caso.
-        if documento == "NFe" and inf_ret_event is not None:
-            text = "CNPJ Destinatário:  %s" % format_cpf_cnpj(
-                get_tag_text(node=inf_ret_event, url=url, tag="CNPJDest")
-            )
+        # O protocolo de registro do evento (NF-e e CT-e) NÃO traz o CNPJ
+        # do destinatário — não existe campo CNPJDest nem no evento nem no
+        # retorno da SEFAZ para CC-e (confirmado em XMLs reais). Só pode
+        # vir de fora, extraído do <dest> do documento original completo.
+        if destinatario_cnpj:
+            text = "CNPJ Destinatário:  %s" % format_cpf_cnpj(destinatario_cnpj)
             self.text(x=12, y=71, text=text)
 
         text = (
