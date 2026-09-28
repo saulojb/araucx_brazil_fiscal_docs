@@ -437,6 +437,16 @@ class Danfe(xFPDF):
             obs += "Complemento do destinatário: " + cpl + "."
         if fisco:
             obs = f"{obs} {fisco}\n"
+        x_ped = next(
+            (
+                text
+                for _det in self.det
+                if (text := extract_text(_det.find(f"{URL}prod"), "xPed"))
+            ),
+            "",
+        )
+        if x_ped:
+            obs = f"{obs} Pedido Número: {x_ped}\n"
 
         if self.infcpl_semicolon_newline:
             obs = obs.replace(";", "\n")
