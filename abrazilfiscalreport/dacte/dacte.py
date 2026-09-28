@@ -1726,7 +1726,9 @@ class Dacte(xFPDF):
         self.vbc = format_number(extract_text(self.imp, "vBC"), precision=2)
         self.p_icms = format_number(extract_text(self.imp, "pICMS"), precision=2)
         self.v_icms = format_number(extract_text(self.imp, "vICMS"), precision=2)
-        self.v_icms_st = format_number(extract_text(self.imp, "vICMS"), precision=2)
+        self.v_icms_st = format_number(
+            extract_text(self.imp, "vICMSSTRet"), precision=2
+        )
         self.p_red_bc = format_number(extract_text(self.imp, "pRedBC"), precision=2)
         g_ibscbs = (
             self.imp_ibscbs.find(f"{URL}gIBSCBS")
