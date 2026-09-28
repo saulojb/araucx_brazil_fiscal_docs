@@ -96,6 +96,7 @@ class DanfeConfig:
     custom_font: Optional[CustomFont] = None
     font_size: FontSize = FontSize.SMALL
     display_pis_cofins: bool = False
+    display_ibs_cbs: bool = True
     watermark_cancelled: bool = False
     infcpl_semicolon_newline: bool = False
     forced_orientation: ForcedOrientation = ForcedOrientation.AUTO

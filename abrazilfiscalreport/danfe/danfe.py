@@ -86,6 +86,7 @@ class Danfe(xFPDF):
         self.quantity_precision = config.decimal_config.quantity_precision
         self.invoice_display = config.invoice_display
         self.display_pis_cofins = config.display_pis_cofins
+        self.display_ibs_cbs = config.display_ibs_cbs
         self.infcpl_semicolon_newline = config.infcpl_semicolon_newline
         self.product_description_config = config.product_description_config
         self.watermark_cancelled = config.watermark_cancelled
@@ -1215,12 +1216,14 @@ class Danfe(xFPDF):
             self.x = old_x  # fix start left position
 
     def _draw_taxes(self):
+        ibscbs_tot = self.totais.find(f"{URL}IBSCBSTot")
+        show_ibs_cbs = self.display_ibs_cbs and ibscbs_tot is not None
+        rows_heights = [DEFAULT_FIELD_HEIGHT, DEFAULT_FIELD_HEIGHT]
+        if show_ibs_cbs:
+            rows_heights.append(DEFAULT_FIELD_HEIGHT)
         block_impostos = DanfeBlock(
             description="CÁLCULO DO IMPOSTO",
-            rows_heights=(
-                DEFAULT_FIELD_HEIGHT,
-                DEFAULT_FIELD_HEIGHT,
-            ),
+            rows_heights=rows_heights,
             pdf=self,
         )
 
@@ -1239,6 +1242,14 @@ class Danfe(xFPDF):
         v_confins = format_number(extract_text(self.totais, "vCOFINS"), precision=2)
         v_nf = format_number(extract_text(self.totais, "vNF"), precision=2)
         v_tot_trib = format_number(extract_text(self.totais, "vTotTrib"), precision=2)
+        if show_ibs_cbs:
+            g_ibs = ibscbs_tot.find(f"{URL}gIBS")
+            g_cbs = ibscbs_tot.find(f"{URL}gCBS")
+            v_bc_ibscbs = format_number(
+                extract_text(ibscbs_tot, "vBCIBSCBS"), precision=2
+            )
+            v_ibs = format_number(extract_text(g_ibs, "vIBS"), precision=2)
+            v_cbs = format_number(extract_text(g_cbs, "vCBS"), precision=2)
 
         fields_line1 = [
             BaseFieldInfo(
@@ -1303,7 +1314,25 @@ class Danfe(xFPDF):
                     w=0, description="VALOR DO COFINS", content=v_confins, type="number"
                 ),
             )
-        block_impostos.add_fields([fields_line1, fields_line2])
+        fields_lines = [fields_line1, fields_line2]
+        if show_ibs_cbs:
+            fields_lines.append(
+                [
+                    BaseFieldInfo(
+                        w=0,
+                        description="BASE DE CÁLCULO IBS/CBS",
+                        content=v_bc_ibscbs,
+                        type="number",
+                    ),
+                    BaseFieldInfo(
+                        w=0, description="VALOR DO IBS", content=v_ibs, type="number"
+                    ),
+                    BaseFieldInfo(
+                        w=0, description="VALOR DO CBS", content=v_cbs, type="number"
+                    ),
+                ]
+            )
+        block_impostos.add_fields(fields_lines)
         block_impostos.render()
 
     def _draw_shipping(self):
