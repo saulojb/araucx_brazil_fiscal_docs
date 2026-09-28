@@ -89,8 +89,8 @@ class Damdfe(xFPDF):
         self._draw_contingency_watermark()
         self._draw_header()
         self._draw_body_info()
-        self._draw_voucher_information()
-        self._draw_insurance_information()
+        list_end_y = self._draw_voucher_information()
+        self._draw_insurance_information(list_end_y)
         self._draw_footer_stamp()
 
     def _build_chCTe_str(self):
@@ -319,11 +319,28 @@ class Damdfe(xFPDF):
         if current_y + required_height <= available_height:
             return current_y
 
+        return self._start_new_content_page()
+
+    def _start_new_content_page(self):
+        """
+        Fecha a página atual (desenhando o footer stamp, se configurado) e
+        inicia uma nova página repetindo o cabeçalho completo do DAMDFE:
+        marcas d'água, quadro do emitente/DAMDFE/QR-code (_draw_header),
+        informações do modal/veículo (_draw_body_info) e a parte estática do
+        bloco de vale-pedágio/composição da carga/percurso, incluindo o
+        cabeçalho de coluna da lista de documentos fiscais vinculados
+        (_draw_voucher_static_block).
+
+        Retorna o Y a partir do qual o conteúdo (lista de documentos ou
+        qualquer outro bloco) deve continuar a ser desenhado na nova página.
+        """
         self._draw_footer_stamp()
         self.add_page(orientation="P")
         self._draw_void_watermark()
         self._draw_contingency_watermark()
-        return self.get_y()
+        self._draw_header()
+        self._draw_body_info()
+        return self._draw_voucher_static_block()
 
     def _draw_footer_stamp(self):
         if not self._has_footer_stamp:
@@ -1402,10 +1419,6 @@ class Damdfe(xFPDF):
         self.line(x_margin, y_middle, x_margin + page_width - 0.5, y_middle)
 
     def _draw_voucher_information(self):
-        x_margin = self.l_margin
-        y_margin = self.y
-        page_width = self.epw
-
         self.mun_descarregamento = extract_text(self.inf_doc, "xMunDescarga")
         self.cnpj_forn = extract_text(self.inf_modal, "CNPJForn")
         self.cnpj_pag = extract_text(self.inf_modal, "CNPJPg")
@@ -1413,6 +1426,30 @@ class Damdfe(xFPDF):
         self.valor_pedagio = format_number(
             extract_text(self.inf_modal, "vValePed"), precision=2
         )
+        self.chNFe_str = self._build_chnfe_str()
+        self.chCTe_str = self._build_chCTe_str()
+
+        current_y = self._draw_voucher_static_block()
+        return self._draw_document_list(current_y)
+
+    def _draw_voucher_static_block(self):
+        """
+        Desenha a parte "estática por página" das informações do
+        comprovante: caixa modal (vale-pedágio/composição da carga/etc.),
+        percurso e o cabeçalho de coluna ("MUNICÍPIO" / "INFORMAÇÕES DOS
+        DOCS. FISCAIS VINCULADOS AO MANIFESTO") da lista de documentos.
+
+        É chamado tanto no desenho da primeira página (via
+        _draw_voucher_information) quanto em cada nova página de
+        continuação (via _start_new_content_page), garantindo que o
+        cabeçalho da lista seja sempre repetido.
+
+        Retorna o Y a partir do qual a lista de chaves de CT-e/NF-e deve
+        ser desenhada nesta página.
+        """
+        x_margin = self.l_margin
+        y_margin = self.y
+        page_width = self.epw
 
         if self.tp_modal == ModalType.RODOVIARIO:
             self.rect(x=x_margin, y=y_margin + 10.5, w=page_width - 0.5, h=30, style="")
@@ -1766,13 +1803,6 @@ class Damdfe(xFPDF):
             border=0,
             align="L",
         )
-        current_y = y_middle + 4
-        current_x_left = x_margin
-        line_height = 4
-        num_lines = 0
-        self.chNFe_str = self._build_chnfe_str()
-        self.chCTe_str = self._build_chCTe_str()
-        num_lines = 0
         if (
             self.tp_modal == ModalType.RODOVIARIO
             or self.tp_modal == ModalType.AQUAVIARIO
@@ -1781,103 +1811,99 @@ class Damdfe(xFPDF):
             self.rect(x=x_margin, y=y_margin + 40.5, w=page_width - 0.5, h=4, style="")
         else:
             current_y = y_margin + 27.5
+
+        return current_y
+
+    def _draw_document_list(self, current_y):
+        """
+        Desenha a lista paginada de chaves de CT-e/NF-e vinculadas ao
+        manifesto (self.chNFe_str ou self.chCTe_str, mutuamente
+        exclusivos), quebrando para uma nova página (com cabeçalho
+        completo repetido via _start_new_content_page) sempre que a
+        próxima linha não couber mais na área útil da página atual.
+
+        Retorna o Y logo após a última linha desenhada (ou o próprio
+        current_y recebido, caso não haja documentos a listar).
+        """
+        x_margin = self.l_margin
+        page_width = self.epw
+        line_height = 4
+
+        entries = self.chNFe_str if self.chNFe_str else self.chCTe_str
+        if not entries:
+            return current_y
+
+        rect_y_start = current_y
         content_height = 0
-        if self.chNFe_str:
-            for i in range(0, len(self.chNFe_str), 2):
-                self.set_xy(x=current_x_left, y=current_y)
+        available_bottom = self.h - self.b_margin
+        n = len(entries)
+        i = 0
+        while i < n:
+            if current_y + line_height > available_bottom:
+                if content_height > 0:
+                    self.rect(
+                        x=x_margin,
+                        y=rect_y_start,
+                        w=page_width - 0.5,
+                        h=content_height,
+                        style="",
+                    )
+                current_y = self._start_new_content_page()
+                rect_y_start = current_y
+                content_height = 0
+                available_bottom = self.h - self.b_margin
+
+            self.set_xy(x=x_margin, y=current_y)
+            self.multi_cell(
+                w=211,
+                h=line_height,
+                text=entries[i]["municipio"],
+                border=0,
+                align="L",
+            )
+            self.set_xy(x=x_margin + 30, y=current_y)
+            self.multi_cell(
+                w=211,
+                h=line_height,
+                text=entries[i]["chave"],
+                border=0,
+                align="L",
+            )
+            if i + 1 < n:
+                self.set_xy(x=x_margin + 92, y=current_y)
                 self.multi_cell(
                     w=211,
                     h=line_height,
-                    text=self.chNFe_str[i]["municipio"],
+                    text=entries[i + 1]["municipio"],
                     border=0,
                     align="L",
                 )
-                self.set_xy(x=current_x_left + 30, y=current_y)
+                self.set_xy(x=x_margin + 125, y=current_y)
                 self.multi_cell(
                     w=211,
                     h=line_height,
-                    text=self.chNFe_str[i]["chave"],
+                    text=entries[i + 1]["chave"],
                     border=0,
                     align="L",
                 )
-                if i + 1 < len(self.chNFe_str):
-                    self.set_xy(x=x_margin + 92, y=current_y)
-                    self.multi_cell(
-                        w=211,
-                        h=line_height,
-                        text=self.chNFe_str[i + 1]["municipio"],
-                        border=0,
-                        align="L",
-                    )
-                    self.set_xy(x=x_margin + 125, y=current_y)
-                    self.multi_cell(
-                        w=211,
-                        h=line_height,
-                        text=self.chNFe_str[i + 1]["chave"],
-                        border=0,
-                        align="L",
-                    )
-                num_lines += 1 if i + 1 >= len(self.chNFe_str) else 2
-                current_y += line_height
-                content_height += line_height
-        elif self.chCTe_str:
-            for i in range(0, len(self.chCTe_str), 2):
-                self.set_xy(x=current_x_left, y=current_y)
-                self.multi_cell(
-                    w=211,
-                    h=line_height,
-                    text=self.chCTe_str[i]["municipio"],
-                    border=0,
-                    align="L",
-                )
-                self.set_xy(x=current_x_left + 30, y=current_y)
-                self.multi_cell(
-                    w=211,
-                    h=line_height,
-                    text=self.chCTe_str[i]["chave"],
-                    border=0,
-                    align="L",
-                )
-                if i + 1 < len(self.chCTe_str):
-                    self.set_xy(x=x_margin + 92, y=current_y)
-                    self.multi_cell(
-                        w=211,
-                        h=line_height,
-                        text=self.chCTe_str[i + 1]["municipio"],
-                        border=0,
-                        align="L",
-                    )
-                    self.set_xy(x=x_margin + 125, y=current_y)
-                    self.multi_cell(
-                        w=211,
-                        h=line_height,
-                        text=self.chCTe_str[i + 1]["chave"],
-                        border=0,
-                        align="L",
-                    )
-                num_lines += 1 if i + 1 >= len(self.chCTe_str) else 2
-                current_y += line_height
-                content_height += line_height
+
+            current_y += line_height
+            content_height += line_height
+            i += 2
+
         if content_height > 0:
-            if (
-                self.tp_modal == ModalType.RODOVIARIO
-                or self.tp_modal == ModalType.AQUAVIARIO
-            ):
-                rect_y_start = y_margin + 44.5
-            else:
-                rect_y_start = y_margin + 27.5
-            rect_height = content_height
             self.rect(
                 x=x_margin,
                 y=rect_y_start,
                 w=page_width - 0.5,
-                h=rect_height,
+                h=content_height,
                 style="",
             )
 
-    def _draw_insurance_information(self):
+        return current_y
+
+    def _draw_insurance_information(self, y_start):
         x_margin = self.l_margin
-        y_margin = self.y
         page_width = self.epw
 
         self.fisco = extract_text(self.inf_adic, "infAdFisco")
@@ -1886,6 +1912,9 @@ class Damdfe(xFPDF):
         self.obs = extract_text(self.inf_adic, "infCpl")
         self._build_seg_str()
         self._build_ciot_str()
+
+        required_height = 44 + (16 if self.inf_ciot_str else 0) + 45
+        y_margin = self._ensure_space(required_height, y_start)
 
         self.rect(
             x=x_margin,
