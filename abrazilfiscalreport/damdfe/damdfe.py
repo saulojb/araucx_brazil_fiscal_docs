@@ -232,14 +232,17 @@ class Damdfe(xFPDF):
 
     def _build_percurso_str(self):
         self.percurso_str = ""
-        for per in self.ide:
+        # Só os elementos infPercurso -- iterar por TODOS os filhos de
+        # <ide> (inclui UFFim, infMunCarrega etc., que vêm depois de
+        # infPercurso no schema) inseria " / " vazios espúrios no meio do
+        # percurso sempre que havia pelo menos um UFPer real.
+        for per in self.ide.findall(f"{URL}infPercurso"):
             self.per = extract_text(per, "UFPer")
+            if not self.per:
+                continue
             if self.percurso_str:
                 self.percurso_str += " / "
             self.percurso_str += self.per
-        # Remove a barra extra no final
-        if self.percurso_str.endswith(" / "):
-            self.percurso_str = self.percurso_str[:-3]
         return self.percurso_str
 
     def _draw_void_watermark(self):
