@@ -1230,6 +1230,10 @@ class Damdfe(xFPDF):
             border=0,
             align="L",
         )
+        # 5.5 (não 6.0): "PRESTADOR DE SERVIÇO DE TRANSPORTE" mede ~45.4mm
+        # a 6pt, e a coluna só tem 44mm (0 a 44) -- estourava pro "TIPO DO
+        # AMBIENTE" seguinte.
+        self.set_font(self.default_font, "", 5.5)
         if self.tp_emit_chave == "3":
             self.set_xy(x=x_margin, y=y_middle + 3)
             self.multi_cell(
@@ -1256,6 +1260,7 @@ class Damdfe(xFPDF):
                 border=0,
                 align="L",
             )
+        self.set_font(self.default_font, "", 6)
         # TIPO DO AMBIENTE
         self.set_xy(x=x_margin + 46, y=y_middle)
         self.multi_cell(
