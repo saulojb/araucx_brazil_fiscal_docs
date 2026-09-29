@@ -903,8 +903,11 @@ class Damdfe(xFPDF):
                 h=h_logo + 2,
                 keep_aspect_ratio=True,
             )
-        self.set_xy(x=x_margin + 25, y=y_margin + 5)
-        self.multi_cell(w=60, h=3, text=emit_info, border=0, align="L")
+        self.set_xy(x=x_margin + 25, y=y_margin + 4)
+        # h=2.8 (não 3): emit_info tem 6 linhas -- a 3mm/linha, terminava em
+        # y_margin+23, quase colando na linha "DAMDFE - Documento..." logo
+        # abaixo (em y_margin+25).
+        self.multi_cell(w=60, h=2.8, text=emit_info, border=0, align="L")
 
         x_middle = x_margin + (page_width - 0.5) / 2
         self.line(x_middle, y_margin, x_middle, y_margin + 88)
