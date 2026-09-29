@@ -1902,27 +1902,20 @@ class Damdfe(xFPDF):
 
         return current_y
 
-    def _draw_insurance_information(self, y_start):
+    def _draw_insurance_header(self, y_margin):
+        """
+        Desenha só o título/linha separadora da caixa "INFORMAÇÕES SOBRE OS
+        SEGUROS" (sem a borda externa, desenhada à parte depois de saber a
+        altura real do conteúdo — ver _draw_insurance_information). Usado
+        tanto na primeira página quanto em cada página de continuação,
+        quando a lista de averbações precisa quebrar.
+
+        Retorna o Y a partir do qual o conteúdo (linhas de seguradora/
+        averbação) deve começar a ser desenhado.
+        """
         x_margin = self.l_margin
         page_width = self.epw
 
-        self.fisco = extract_text(self.inf_adic, "infAdFisco")
-        if self.fisco:
-            self.fisco = self.fisco.replace(";", "\n")
-        self.obs = extract_text(self.inf_adic, "infCpl")
-        self._build_seg_str()
-        self._build_ciot_str()
-
-        required_height = 44 + (16 if self.inf_ciot_str else 0) + 45
-        y_margin = self._ensure_space(required_height, y_start)
-
-        self.rect(
-            x=x_margin,
-            y=y_margin,
-            w=page_width - 0.5,
-            h=44,
-            style="",
-        )
         y_middle = y_margin + 8
         self.line(x_margin, y_middle - 4, x_margin + page_width - 0.5, y_middle - 4)
         self.set_xy(x=(page_width - 45) / 2, y=y_middle - 6)
@@ -1931,55 +1924,98 @@ class Damdfe(xFPDF):
             w=100, h=0, text="INFORMAÇÕES SOBRE OS SEGUROS", border=0, align="L"
         )
         self.set_font(self.default_font, "", 6)
-        y_position = self.get_y() + 2
+        return self.get_y() + 2
+
+    def _draw_insurance_information(self, y_start):
+        """
+        Desenha a caixa de seguros/averbações com altura DINÂMICA (calculada
+        a partir da quantidade real de linhas) e paginação — segue o mesmo
+        padrão de _draw_document_list. Antes, a caixa tinha altura fixa de
+        44mm e, com muitas averbações (ex.: MDF-e com muitos CT-e/NF-e
+        vinculados, cada um gerando sua própria averbação), o texto
+        estourava a caixa e colidia com o bloco seguinte ("INFORMAÇÕES
+        COMPLEMENTARES DE INTERESSE DO CONTRIBUINTE"), que sempre começava
+        num Y fixo (y_margin + 40) sem considerar o quanto a lista de
+        averbações realmente ocupou.
+        """
+        x_margin = self.l_margin
+        page_width = self.epw
+        line_height = 4
+        min_content_height = 44
+
+        self.fisco = extract_text(self.inf_adic, "infAdFisco")
+        if self.fisco:
+            self.fisco = self.fisco.replace(";", "\n")
+        self.obs = extract_text(self.inf_adic, "infCpl")
+        self._build_seg_str()
+        self._build_ciot_str()
+
+        # Monta as linhas de texto ANTES de desenhar (NOME/CNPJ/APÓLICE +
+        # averbações agrupadas de 3 em 3), pra poder calcular a altura real
+        # da caixa e decidir se/onde quebrar página.
+        max_averbacoes_por_linha = 3
+        linhas = []
         for seg_data in self.inf_seg_str:
-            self.set_xy(x=x_margin, y=y_position)
-            self.multi_cell(
-                w=190,
-                h=4,
-                text=(
-                    f"NOME: {seg_data['nome']}  "
-                    f"CNPJ: {seg_data['cnpj']}  "
-                    f"APÓLICE: {seg_data['apolice']}"
-                ),
-                border=0,
-                align="L",
+            linhas.append(
+                f"NOME: {seg_data['nome']}  "
+                f"CNPJ: {seg_data['cnpj']}  "
+                f"APÓLICE: {seg_data['apolice']}"
             )
-            y_position += 4
-            max_averbacoes_por_linha = 3
             averbacao_linha = ""
             averbacao_count = 0
-            for _, aver in enumerate(seg_data["averbacoes"]):
+            for aver in seg_data["averbacoes"]:
+                if not aver:
+                    continue
                 if averbacao_count < max_averbacoes_por_linha:
-                    if aver:
-                        averbacao_linha += f"AVERBAÇÃO: {aver}  "
-                        averbacao_count += 1
+                    averbacao_linha += f"AVERBAÇÃO: {aver}  "
+                    averbacao_count += 1
                 else:
-                    self.set_xy(x=x_margin, y=y_position)
-                    self.multi_cell(
-                        w=190,
-                        h=4,
-                        text=averbacao_linha.strip(),
-                        border=0,
-                        align="L",
-                    )
-                    y_position += 4
+                    linhas.append(averbacao_linha.strip())
                     averbacao_linha = f"AVERBAÇÃO: {aver}  "
                     averbacao_count = 1
             if averbacao_linha:
-                self.set_xy(x=x_margin, y=y_position)
-                self.multi_cell(
-                    w=190,
-                    h=4,
-                    text=averbacao_linha.strip(),
-                    border=0,
-                    align="L",
-                )
-                y_position += 4
+                linhas.append(averbacao_linha.strip())
 
-        current_block_y = y_margin + 40
+        header_height = 8
+        available_bottom = self.h - self.b_margin
+
+        y_margin = self._ensure_space(header_height + line_height, y_start)
+        rect_y_start = y_margin
+        content_height = header_height
+        y_position = self._draw_insurance_header(y_margin)
+
+        for linha in linhas:
+            if y_position + line_height > available_bottom:
+                self.rect(
+                    x=x_margin, y=rect_y_start, w=page_width - 0.5,
+                    h=content_height, style="",
+                )
+                y_margin = self._start_new_content_page()
+                rect_y_start = y_margin
+                content_height = header_height
+                y_position = self._draw_insurance_header(y_margin)
+                available_bottom = self.h - self.b_margin
+
+            self.set_xy(x=x_margin, y=y_position)
+            self.multi_cell(w=190, h=line_height, text=linha, border=0, align="L")
+            y_position += line_height
+            content_height += line_height
+
+        if content_height < min_content_height:
+            content_height = min_content_height
+
+        self.rect(
+            x=x_margin, y=rect_y_start, w=page_width - 0.5,
+            h=content_height, style="",
+        )
+
+        # -4: o bloco seguinte (CIOT ou Complementares) começa repetindo os
+        # últimos 4mm da caixa de seguros (mesmo comportamento de quando a
+        # altura era fixa em 44: y_margin + 40 == y_margin + 44 - 4).
+        current_block_y = rect_y_start + content_height - 4
 
         if self.inf_ciot_str:
+            current_block_y = self._ensure_space(16, current_block_y)
             self.rect(
                 x=x_margin,
                 y=current_block_y,
@@ -2019,6 +2055,7 @@ class Damdfe(xFPDF):
                 ciot_y += 3
             current_block_y += 16
 
+        current_block_y = self._ensure_space(45, current_block_y)
         self.rect(
             x=x_margin,
             y=current_block_y,
