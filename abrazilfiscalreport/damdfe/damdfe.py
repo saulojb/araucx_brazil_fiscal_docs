@@ -1011,6 +1011,9 @@ class Damdfe(xFPDF):
             align="L",
         )
         self.set_xy(x=x_margin + 38, y=y_middle + 3)
+        # Coluna de 20mm (38 a 58); "DD/MM/AAAA HH:MM:SS" mede ~19.4mm a
+        # 6pt -- praticamente sem folga, estourava pro "UF CARREG" seguinte.
+        self.set_font(self.default_font, "", 5.5)
         self.multi_cell(
             w=100,
             h=3,
@@ -1018,6 +1021,7 @@ class Damdfe(xFPDF):
             border=0,
             align="L",
         )
+        self.set_font(self.default_font, "", 6)
 
         # UF CARREG
         self.set_xy(x=x_margin + 59, y=y_middle)
