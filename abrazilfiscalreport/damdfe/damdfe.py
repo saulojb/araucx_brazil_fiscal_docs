@@ -1762,7 +1762,10 @@ class Damdfe(xFPDF):
             y_end=y_middle + 4,
             x_margin=x_margin,
         )
-        self.set_font(self.default_font, "", 5.5)
+        # 5.0 (não 5.5): "INFORMAÇÕES DOS DOCS. FISCAIS VINCULADOS AO
+        # MANIFESTO" a 5.5pt mede ~62.3mm, praticamente igual à largura da
+        # coluna (62mm) — colava direto no "MUNICÍPIO" da coluna seguinte.
+        self.set_font(self.default_font, "", 5.0)
         # INFORMAÇÕES DA COMPOSIÇÃO DA CARGA
         # MUNICÍPIO
         self.set_xy(x=x_margin, y=y_middle + 1)
