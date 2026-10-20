@@ -56,6 +56,11 @@ damdfe = [
 danfse = [
     "qrcode",
 ]
+# DANFCe (NFC-e) specific dependencies
+danfce = [
+    "qrcode",
+    "fpdf2>=2.8.6",
+]
 # Dependencies CLI
 cli = [
     "click",
