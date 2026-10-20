@@ -356,3 +356,27 @@ def test_danfce_qr_code_scales_with_the_roll(load_xml, monkeypatch, paper_width)
     )
 
     assert sizes and sizes[-1] == pytest.approx(danfce.epw * QR_CODE_RATIO)
+
+
+def test_danfce_qr_code_ratio_is_configurable(load_danfce, monkeypatch):
+    """qr_code_ratio reduz o QR sem mudar o padrão (QR_CODE_RATIO) quando omitido."""
+    tamanhos = []
+    original = __import__("abrazilfiscalreport.danfce.danfce", fromlist=["x"]).draw_qr_code
+
+    def espiao(self, *args, **kwargs):
+        tamanhos.append(kwargs.get("size"))
+        return original(self, *args, **kwargs)
+
+    monkeypatch.setattr("abrazilfiscalreport.danfce.danfce.draw_qr_code", espiao)
+
+    padrao = load_danfce("danfce_default.xml")
+    padrao.output()
+    tamanho_padrao = tamanhos[-1]
+    tamanhos.clear()
+    menor = load_danfce("danfce_default.xml", config=DanfceConfig(qr_code_ratio=0.5))
+    menor.output()
+    tamanho_menor = tamanhos[-1]
+
+    assert tamanho_padrao == pytest.approx(padrao.epw * QR_CODE_RATIO)
+    assert tamanho_menor == pytest.approx(menor.epw * 0.5)
+    assert tamanho_menor < tamanho_padrao

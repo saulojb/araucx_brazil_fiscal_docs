@@ -52,3 +52,7 @@ class DanfceConfig:
     # exata do conteúdo, que é como a bobina contínua funciona. Fixar um
     # valor volta a quebrar o cupom em páginas desse tamanho.
     paper_height: Number | None = None
+    # Lado do QR Code como fração da largura útil do cupom. None mantém o
+    # padrão do DANFCe (QR_CODE_RATIO = 0.7); valores menores deixam o QR
+    # mais compacto (abaixo de ~0.4 a leitura por celular fica difícil).
+    qr_code_ratio: Number | None = None

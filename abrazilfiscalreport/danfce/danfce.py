@@ -675,7 +675,8 @@ class Danfce(xFPDF):
         self._draw_line()
         self.ln(1)
 
-        qr_size = self.epw * QR_CODE_RATIO
+        ratio = self.config.qr_code_ratio or QR_CODE_RATIO
+        qr_size = self.epw * ratio
         # O QR Code é posicionado em coordenada absoluta, então precisa caber
         # inteiro — junto da legenda acima e do protocolo abaixo.
         self.ensure_space(qr_size + 18)
