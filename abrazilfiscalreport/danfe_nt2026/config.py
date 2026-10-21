@@ -23,6 +23,15 @@ class FontType(Enum):
     HELVETICA = "Helvetica"  # Helvetica/Arial (fonte nativa do PDF, mesmas métricas do Arial)
 
 
+@dataclass
+class CustomFont:
+    """Fonte TTF personalizada. Informe o nome e os caminhos dos arquivos."""
+
+    name: str
+    regular: str  # caminho para o .ttf regular
+    bold: str = ""  # caminho para o .ttf bold; usa regular se vazio
+
+
 class FontSize(Enum):
     # Os valores a seguir são multiplicadores que ajustam o tamanho da fonte da DANFE.
     SMALL = 1.0
@@ -86,7 +95,10 @@ class DanfeConfig:
     decimal_config: DecimalConfig = field(default_factory=DecimalConfig)
     tax_configuration: TaxConfiguration = TaxConfiguration.STANDARD_ICMS_IPI
     invoice_display: InvoiceDisplay = InvoiceDisplay.FULL_DETAILS
-    font_type: FontType = FontType.TIMES
+    # None = fonte padrão da biblioteca (Roboto Condensed empacotada em
+    # abrazilfiscalreport/fonts; sem os arquivos, Helvetica nativa). Informe um FontType
+    # para usar uma fonte nativa do PDF (Times, Courier, Helvetica).
+    font_type: FontType | None = None
     font_size: FontSize = FontSize.SMALL
     display_pis_cofins: bool = False
     watermark_cancelled: bool = False
@@ -96,6 +108,8 @@ class DanfeConfig:
     )
     footer_stamp: FooterStamp = field(default_factory=FooterStamp)
     forced_orientation: ForcedOrientation = ForcedOrientation.AUTO
+    # Fonte TTF própria; quando informada, tem prioridade sobre font_type e sobre o padrão.
+    custom_font: CustomFont | None = None
 
     def __post_init__(self):
         # Aceita também o inteiro (0/1/2), útil em PL/Python: enum puro não compara

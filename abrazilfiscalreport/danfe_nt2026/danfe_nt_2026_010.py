@@ -24,9 +24,12 @@ from ._utils import (
     merge_if_different,
 )
 from ._xfpdf import xFPDF
+from ..fonts import default_font_files
 from .config import (
+    CustomFont,
     DanfeConfig,
     FontSize,
+    FontType,
     ForcedOrientation,
     InvoiceDisplay,
     ReceiptPosition,
@@ -126,7 +129,18 @@ class DanfeNt2026010(xFPDF):
         self.set_title("DANFE")
         self.logo_image = config.logo
         self.receipt_pos = config.receipt_pos
-        self.default_font = config.font_type.value
+        # Prioridade: custom_font > font_type explícito > fonte padrão empacotada > Helvetica.
+        if config.custom_font:
+            self._register_custom_font(config.custom_font)
+        elif config.font_type is not None:
+            self.default_font = config.font_type.value
+        else:
+            padrao = default_font_files()
+            if padrao:
+                name, regular, bold = padrao
+                self._register_custom_font(CustomFont(name, regular, bold))
+            else:
+                self.default_font = FontType.HELVETICA.value
         self.default_font_factor = (
             config.font_size.value
             if self.default_font == "Times"

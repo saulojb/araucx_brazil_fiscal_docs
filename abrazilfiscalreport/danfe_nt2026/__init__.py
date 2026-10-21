@@ -9,6 +9,7 @@ aqui. Use ``uses_nt_2026_010(xml)`` para decidir o leiaute pela data de emissão
 """
 
 from .config import (
+    CustomFont,
     DanfeConfig,
     DecimalConfig,
     FontSize,
@@ -25,6 +26,7 @@ from .danfe_nt_2026_010 import DanfeNt2026010
 from .layout import NT_2026_010_START, get_issue_datetime, uses_nt_2026_010
 
 __all__ = [
+    "CustomFont",
     "DanfeConfig",
     "DanfeNt2026010",
     "DecimalConfig",

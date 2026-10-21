@@ -31,7 +31,12 @@ from tests.conftest import assert_pdf_equal, get_pdf_output_path
 def load_danfe(load_xml):
     def _load_danfe(filename, config=None):
         xml_content = load_xml(f"danfe_nt2026/{filename}")
-        return DanfeNt2026010(xml=xml_content, config=config or DanfeConfig())
+        config = config or DanfeConfig()
+        if config.font_type is None and config.custom_font is None:
+            # As referências em tests/generated/danfe_nt2026 (porte do upstream) são em
+            # Times; o padrão deste fork é a Roboto Condensed (testes abaixo).
+            config = replace(config, font_type=FontType.TIMES)
+        return DanfeNt2026010(xml=xml_content, config=config)
 
     return _load_danfe
 
@@ -289,7 +294,7 @@ def test_danfe_rtc(tmp_path, load_danfe):
 
 def test_danfe_rtc_landscape(tmp_path, load_xml):
     xml = load_xml("danfe_nt2026/nfe_rtc.xml").replace("<tpImp>1</tpImp>", "<tpImp>2</tpImp>")
-    danfe = DanfeNt2026010(xml=xml)
+    danfe = DanfeNt2026010(xml=xml, config=DanfeConfig(font_type=FontType.TIMES))
     pdf_path = get_pdf_output_path("danfe_nt2026", "danfe_rtc_landscape")
     assert_pdf_equal(danfe, pdf_path, tmp_path)
 
@@ -614,6 +619,7 @@ def test_danfe_carrier_receipt_landscape(tmp_path, load_xml):
     config = DanfeConfig(
         margins=Margins(top=2, right=2, bottom=2, left=2),
         carrier_receipt=True,
+        font_type=FontType.TIMES,
     )
     danfe = DanfeNt2026010(xml=xml, config=config)
     pdf_path = get_pdf_output_path("danfe_nt2026", "danfe_carrier_receipt_landscape")
@@ -703,3 +709,51 @@ def test_danfe_forced_landscape_renders(load_xml):
     pdf = DanfeNt2026010(xml=xml, config=cfg)
     pdf.output()
     assert pdf.w > pdf.h
+
+
+# --- Fonte padrão do fork: Roboto Condensed empacotada (abrazilfiscalreport/fonts) ---
+
+
+def test_default_font_is_bundled_roboto_condensed(load_xml):
+    from abrazilfiscalreport.fonts import DEFAULT_FONT_NAME, default_font_files
+
+    assert default_font_files() is not None
+    danfe = DanfeNt2026010(xml=load_xml("danfe_nt2026/nfe_rtc.xml"))
+    assert danfe.default_font == DEFAULT_FONT_NAME
+    pdf = bytes(danfe.output())
+    assert b"RobotoCondensed" in pdf
+    assert b"Times" not in pdf
+
+
+def test_default_font_falls_back_to_helvetica_without_files(load_xml, monkeypatch):
+    monkeypatch.setattr(
+        "abrazilfiscalreport.danfe_nt2026.danfe_nt_2026_010.default_font_files",
+        lambda: None,
+    )
+    danfe = DanfeNt2026010(xml=load_xml("danfe_nt2026/nfe_rtc.xml"))
+    assert danfe.default_font == "Helvetica"
+    danfe.output()
+
+
+def test_explicit_font_type_beats_default_font(load_xml):
+    xml = load_xml("danfe_nt2026/nfe_rtc.xml")
+    for font_type, name in ((FontType.TIMES, "Times"), (FontType.HELVETICA, "Helvetica")):
+        assert DanfeNt2026010(xml=xml, config=DanfeConfig(font_type=font_type)).default_font == name
+
+
+def test_custom_font_beats_everything(load_xml):
+    from abrazilfiscalreport.danfe_nt2026 import CustomFont
+    from abrazilfiscalreport.fonts import DEFAULT_BOLD, DEFAULT_REGULAR
+
+    xml = load_xml("danfe_nt2026/nfe_rtc.xml")
+    cfg = DanfeConfig(
+        font_type=FontType.TIMES,
+        custom_font=CustomFont("Minha", str(DEFAULT_REGULAR), str(DEFAULT_BOLD)),
+    )
+    assert DanfeNt2026010(xml=xml, config=cfg).default_font == "Minha"
+
+
+def test_danfe_default_font_rtc(tmp_path, load_xml):
+    danfe = DanfeNt2026010(xml=load_xml("danfe_nt2026/nfe_rtc.xml"))
+    pdf_path = get_pdf_output_path("danfe_nt2026", "danfe_default_font_rtc")
+    assert_pdf_equal(danfe, pdf_path, tmp_path)

@@ -6,6 +6,13 @@ class xFPDF(FPDF):
         super().__init__(*args, **kwargs)
         self.core_fonts_encoding = "cp1252"
 
+    def _register_custom_font(self, custom_font):
+        """Registra uma fonte TTF e define self.default_font com seu nome."""
+        self.add_font(custom_font.name, fname=custom_font.regular)
+        bold_path = custom_font.bold if custom_font.bold else custom_font.regular
+        self.add_font(custom_font.name, style="B", fname=bold_path)
+        self.default_font = custom_font.name
+
     def long_field(self, text="", limit=0, font_size=None, font_style=""):
         if not text or limit <= 0:
             return ""
