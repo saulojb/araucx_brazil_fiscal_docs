@@ -61,6 +61,11 @@ danfce = [
     "qrcode",
     "fpdf2>=2.8.6",
 ]
+# DANFE no leiaute da NT 2026.010 (Reforma Tributária)
+danfe_nt2026 = [
+    "qrcode",
+    "fpdf2>=2.8.6",
+]
 # Dependencies CLI
 cli = [
     "click",
