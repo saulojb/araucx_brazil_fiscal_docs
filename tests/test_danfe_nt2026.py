@@ -757,3 +757,18 @@ def test_danfe_default_font_rtc(tmp_path, load_xml):
     danfe = DanfeNt2026010(xml=load_xml("danfe_nt2026/nfe_rtc.xml"))
     pdf_path = get_pdf_output_path("danfe_nt2026", "danfe_default_font_rtc")
     assert_pdf_equal(danfe, pdf_path, tmp_path)
+
+
+def test_package_does_not_import_upstream_brazilfiscalreport():
+    """O porte não pode depender do pacote do upstream (``brazilfiscalreport``): no servidor ele não existe."""
+    import pathlib
+    import re
+
+    raiz = pathlib.Path(__file__).resolve().parent.parent / "abrazilfiscalreport"
+    padrao = re.compile(r"^\s*(from|import)\s+brazilfiscalreport\b", re.M)
+    infratores = [
+        str(p.relative_to(raiz))
+        for p in raiz.rglob("*.py")
+        if padrao.search(p.read_text(encoding="utf-8"))
+    ]
+    assert infratores == []

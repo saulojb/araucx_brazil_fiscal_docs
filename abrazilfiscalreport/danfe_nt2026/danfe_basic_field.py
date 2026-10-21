@@ -3,7 +3,7 @@ from __future__ import annotations
 from fpdf import FPDF
 from fpdf.enums import MethodReturnValue
 
-from brazilfiscalreport.pdf_element import Element
+from ._pdf_element import Element
 
 from .danfe_conf import (
     DEFAULT_FIELD_HEIGHT,
