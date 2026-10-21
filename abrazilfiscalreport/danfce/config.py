@@ -13,6 +13,15 @@ class FontType(Enum):
 
 
 @dataclass
+class CustomFont:
+    """Fonte TTF personalizada. Informe o nome e os caminhos dos arquivos."""
+
+    name: str
+    regular: str  # caminho para o .ttf regular
+    bold: str = ""  # caminho para o .ttf bold; usa regular se vazio
+
+
+@dataclass
 class Margins:
     top: Number = 2
     right: Number = 2
@@ -56,3 +65,5 @@ class DanfceConfig:
     # padrão do DANFCe (QR_CODE_RATIO = 0.7); valores menores deixam o QR
     # mais compacto (abaixo de ~0.4 a leitura por celular fica difícil).
     qr_code_ratio: Number | None = None
+    # Fonte TTF própria; quando informada, tem prioridade sobre font_type.
+    custom_font: CustomFont | None = None

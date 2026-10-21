@@ -7,7 +7,14 @@ Python 3.8+ e dependências do upstream que o fork não tem isoladas em ``_suppo
 Módulo aditivo: não altera nenhum dos demais documentos do pacote.
 """
 
-from .config import DanfceConfig, DecimalConfig, FontType, Margins
+from .config import CustomFont, DanfceConfig, DecimalConfig, FontType, Margins
 from .danfce import Danfce
 
-__all__ = ["Danfce", "DanfceConfig", "DecimalConfig", "FontType", "Margins"]
+__all__ = [
+    "CustomFont",
+    "Danfce",
+    "DanfceConfig",
+    "DecimalConfig",
+    "FontType",
+    "Margins",
+]

@@ -74,7 +74,10 @@ class Danfce(xFPDF):
             auto=not self.continuous, margin=self.config.margins.bottom
         )
         self.set_title("DANFCe")
-        self.default_font = self.config.font_type.value
+        if self.config.custom_font:
+            self._register_custom_font(self.config.custom_font)
+        else:
+            self.default_font = self.config.font_type.value
         self.price_precision = self.config.decimal_config.price_precision
         self.quantity_precision = self.config.decimal_config.quantity_precision
         self.root = ET.fromstring(xml)

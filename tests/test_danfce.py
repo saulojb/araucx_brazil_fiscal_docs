@@ -380,3 +380,15 @@ def test_danfce_qr_code_ratio_is_configurable(load_danfce, monkeypatch):
     assert tamanho_padrao == pytest.approx(padrao.epw * QR_CODE_RATIO)
     assert tamanho_menor == pytest.approx(menor.epw * 0.5)
     assert tamanho_menor < tamanho_padrao
+
+
+def test_danfce_custom_font(load_danfce):
+    from abrazilfiscalreport.danfce import CustomFont
+    from abrazilfiscalreport.fonts import DEFAULT_BOLD, DEFAULT_REGULAR
+
+    config = DanfceConfig(
+        custom_font=CustomFont("Minha", str(DEFAULT_REGULAR), str(DEFAULT_BOLD))
+    )
+    danfce = load_danfce("danfce_default.xml", config=config)
+    assert danfce.default_font == "Minha"
+    assert b"RobotoCondensed" in bytes(danfce.output())
